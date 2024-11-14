@@ -1,0 +1,17 @@
+Answer should end with: So the maximum flow from node i to node j is #your answer#. where i and j are the source and sink nodes in the question.
+In a directed graph, the nodes are numbered from 0 to 4, and the edges are:
+an edge from node 0 to node 1 with capacity 3,
+an edge from node 0 to node 2 with capacity 3,
+an edge from node 0 to node 4 with capacity 3,
+an edge from node 1 to node 3 with capacity 1,
+an edge from node 2 to node 0 with capacity 10,
+an edge from node 3 to node 2 with capacity 8,
+an edge from node 3 to node 4 with capacity 2,
+an edge from node 4 to node 2 with capacity 8,
+an edge from node 4 to node 0 with capacity 10.
+Q: What is the maximum flow from node 0 to node 2?
+A:
+Acc: 1/1
+Acc2: 0/1
+
+Namespace(model='gpt-4o-mini', mode='easy', prompt='none', T=0, token=1024, SC=0, SC_num=5)
