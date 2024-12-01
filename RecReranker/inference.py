@@ -96,8 +96,10 @@ if __name__ == "__main__":
     parser.add_argument('--model_name', type=str, default='gpt-4o', help='model name') # mistralai/Mistral-7B-v0.1
     parser.add_argument('--temperature', type=float, default=0.3, help='temperature')
     parser.add_argument('--max_tokens', type=int, default=2048, help='max tokens')
-    parser.add_argument('--input_path', type=str, default='../dataset/movielens_1M/natural_language_top10_sample.csv', 
+    parser.add_argument('--nl_input_path', type=str, default='../dataset/movielens_1M/natural_language_top10_sample.csv', 
                         help='Natural language dataset')
+    parser.add_argument('--tabu_input_path', type=str, default='../dataset/movielens_1M/sequential_top10_filtered.csv.csv',
+                        help='sequential dataset') # TODO, 修改output的内容更简单
     parser.add_argument('--output_path', type=str, default='inference_results/results.txt', help='inference results path')
     args = parser.parse_args()
     
