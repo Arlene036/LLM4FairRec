@@ -4,6 +4,7 @@ import random
 from openai import AsyncOpenAI
 from datasets import Dataset, DatasetDict
 import re
+import os
 from typing import List
 # OpenAI Async Dispatch
 async def generate_chosen_reasons(user_history, chosen_movies, model="gpt-4o-mini"):
@@ -19,7 +20,7 @@ async def generate_chosen_reasons(user_history, chosen_movies, model="gpt-4o-min
     )
 
     prompt = f"""
-    Generate reasons for chosen reranking of movie candidates used for DPO training.
+    You are a AI assistant to generate short reasons for specific reason of ranked movies, why the movies should be ranked like this.
 
     User's movie watching history: {user_history}
  
@@ -30,19 +31,24 @@ async def generate_chosen_reasons(user_history, chosen_movies, model="gpt-4o-min
     Possible responses for chosen reranking reason could be:
     This movie combines science fiction, thriller, and mystery elements, aligning strongly with the user's preference for complex, thought-provoking stories as seen in their history.
     The mathematical genius theme and psychological intensity resonate with the user's interest in thrilling and intelligent narratives.
-    The movie tells a romantic story happening in high school which is similar to user's interested movie 56.
+    The movie tells a romantic story happening in high school which is similar to user's interested movie.
 
-    Please STRICTLY follow the format below for output, don't output any other words, do not repeatedly output one movie, just one movie a line with the reason, do not output all the movie information except the id
-    Rank 1: Movie ..  - Reason: ...
-    Rank 2: Movie ..  - Reason: ...
+    Please STRICTLY follow the format below for output, the ranked order should be the same as the 'Reranked movies' given, don't output any other words, do not repeatedly output one movie, just one movie a line with the reason, do not output all the movie information except the id
+    Rank 1: {chosen_movies[0].split(':')[0]} - Reason: (the reason that theuser might like this movie most)
+    Rank 2: {chosen_movies[1].split(':')[0]} - Reason: ...
     ...
+    Rank {len(chosen_movies)-1}: {chosen_movies[-2].split(':')[0]}  - Reason: (Reason that the user possible not like this movie)
+    Rank {len(chosen_movies)}: {chosen_movies[-1].split(':')[0]}  - Reason: (Reason that the user possible not like this movie)
     """
     #print(prompt)
     # Call OpenAI and handle response
+    # print(f"Calling OpenAI with prompt: {prompt}")
+    # print('--------------------------------')
+    # print(chosen_request)
     response = await dispatch_openai_requests(
-        [prompt], model=model, temperature=0.7, max_tokens=500
+        [prompt], model=model, temperature=0.4, max_tokens=500
     )
-
+  
     if response and len(response) > 0:
         reasons = response[0].replace("Chosen:", "").strip().split("\n")
         return reasons
@@ -159,7 +165,7 @@ async def process_row(row):
     ground_truth = parse_movie_list(row['ground_truth'])
 
     # Prepare descriptive strings for user history
-    user_history_desc = ", ".join(history)
+    user_history_desc = " ".join(history)
 
     # Combine ground truth and candidates
     all_movies = candidates
@@ -168,47 +174,21 @@ async def process_row(row):
     prompt_candidates = all_movies[:]
     random.shuffle(prompt_candidates)
 
-    chosen_movies = [movie for movie in candidates if movie in ground_truth] + \
-                    [movie for movie in candidates if movie not in ground_truth]
+    ground_truth_movies = [movie for movie in candidates if movie in ground_truth]
+    non_ground_truth_movies = [movie for movie in candidates if movie not in ground_truth]
 
-    # Shuffle for the rejected list
+    random.shuffle(ground_truth_movies)
+    random.shuffle(non_ground_truth_movies)
+    chosen_movies = ground_truth_movies + non_ground_truth_movies
+    # Shuffle for the rejected list 
     rejected_movies = all_movies[:]
     random.shuffle(rejected_movies)
 
     # Generate meaningful reasons for `chosen`
-    chosen_reasons = await generate_chosen_reasons(user_history_desc, all_movies)
-    chosen_reasons_map = {}
-    for reason in chosen_reasons:
-        match = re.match(r"Rank \d+: Movie (\d+) - Reason: (.+)", reason)
-        if match:
-            movie_id = match.group(1)
-            movie_reason = match.group(2)
-            chosen_reasons_map[movie_id] = movie_reason
+    chosen_reasons = await generate_chosen_reasons(user_history_desc, chosen_movies)
 
-    # Format rejected reasons based on rejected_movies order
-    rejected_reasons = []
-    for i, movie in enumerate(rejected_movies):
-        match = re.match(r"Movie (\d+):", movie)
-        if match:
-            movie_id = match.group(1)
-            reason = chosen_reasons_map.get(movie_id, "No reason found")
-            rejected_reasons.append(f"Rank {i + 1}: Movie {movie_id} - Reason: {reason}")
+    rejected_reasons = await generate_chosen_reasons(user_history_desc, rejected_movies)
 
-    # # Format `chosen` output
-    # chosen = [
-    #     f"chosen_reasons[i]"
-    #     for i in range(len(all_movies))
-    #     if i < len(chosen_reasons)
-    # ]
-
-    # # Format `rejected` output
-    # rejected = [
-    #     f"Rank{i + 1}: {rejected_movies[i]} - Reason: {rejected_reasons[i]}"
-    #     for i in range(len(rejected_movies))
-    #     if i < len(rejected_reasons)
-    # ]
-
-    # Generate prompt with shuffled candidates
     len_candidates = len(prompt_candidates)
     prompt = generate_prompt(
         user_history_desc,
@@ -216,17 +196,23 @@ async def process_row(row):
         len_candidates
     )
 
-    return {"prompt": prompt, "chosen": "\n".join(chosen_reasons), "rejected": "\n".join(rejected_reasons)}
-
+    return {"prompt": prompt, 
+            "chosen": "\n".join(chosen_reasons), 
+            "rejected": "\n".join(rejected_reasons)}
 
 
 
 # Process Dataset Incrementally
-async def process_dataset_incrementally(input_path, output_path, batch_size=1000):
+async def process_dataset_incrementally(input_path, output_path, dataset_name, batch_size=1000):
     dataset = pd.read_csv(input_path)
     processed_rows = []
-
-    for i in range(0, len(dataset), batch_size):
+    existed_length=0
+    if os.path.exists(output_path):
+        # 读取已存在的数据
+        existed_dataset = pd.read_csv(output_path)
+        existed_length = len(existed_dataset)
+    
+    for i in range(existed_length, len(dataset), batch_size):
         batch = dataset.iloc[i : i + batch_size]
         tasks = [process_row(row) for _, row in batch.iterrows()]
         results = await asyncio.gather(*tasks)
@@ -234,10 +220,16 @@ async def process_dataset_incrementally(input_path, output_path, batch_size=1000
         # Append results to processed_rows
         processed_rows.extend(results)
 
-        # Save incrementally to avoid data loss
-        pd.DataFrame(processed_rows).to_csv(output_path, index=False)
+        # append to existed dataset
+        if existed_length == 0:
+            pd.DataFrame(processed_rows).to_csv(output_path, index=False)
+        else:
+            pd.DataFrame(processed_rows).to_csv(output_path, index=False, mode='a', header=False)
         print(f"Processed {len(processed_rows)} rows and saved to {output_path}")
 
+
+        if i % 6000 == 0:
+            upload_to_huggingface(output_path, dataset_name)
 
 # Upload to Hugging Face
 def upload_to_huggingface(output_path, dataset_name):
@@ -250,12 +242,12 @@ import asyncio
 # Define your main async function
 async def main():
     # Call your async function here
-    input_csv = 'dataset/movielens_1M/natural_language_top10_sample.csv'
-    output_csv = 'dataset/movielens_1M/dpo_dataset.csv'
-    dataset_name = "sssssssshhhhhu/movielens_dpo_dataset"
+    input_csv = 'dataset/movielens_1M/natural_language_top10.csv'
+    output_csv = 'dataset/movielens_1M/dpo_dataset_2.csv'
+    dataset_name = "sssssssshhhhhu/movielens_dpo_dataset_2"
  
     # Call the processing function
-    await process_dataset_incrementally(input_csv, output_csv, batch_size=100)
+    await process_dataset_incrementally(input_csv, output_csv, dataset_name, batch_size=1000)
 
     # Call the Hugging Face upload function
     upload_to_huggingface(output_csv, dataset_name)
