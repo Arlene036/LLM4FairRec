@@ -1,6 +1,6 @@
 import argparse
 import numpy as np
-
+import pickle
 RATING_FILE_NAME = dict({'movie': 'ratings.dat', 'book': 'BX-Book-Ratings.csv', 'news': 'ratings.txt'})
 SEP = dict({'movie': '::', 'book': ';', 'news': '\t'})
 THRESHOLD = dict({'movie': 4, 'book': 0, 'news': 0})
@@ -71,6 +71,9 @@ def convert_rating():
     print('number of users: %d' % user_cnt)
     print('number of items: %d' % len(item_set))
 
+    # 返回映射字典
+    return user_index_old2new, item_index_old2new
+
 
 def convert_kg():
     print('converting kg file ...')
@@ -115,6 +118,37 @@ def convert_kg():
     print('number of relations: %d' % relation_cnt)
 
 
+def convert_processed_to_original(processed_array, user_index_old2new, item_index_old2new):
+    """
+    将处理后的user-item-interaction数组转换回原始ID
+    
+    Args:
+        processed_array: numpy array, 形状为 (N, 3)，包含 [processed_user_id, processed_item_id, interaction]
+        user_index_old2new: dict, 用户ID的原始到处理后的映射字典
+        item_index_old2new: dict, 物品ID的原始到处理后的映射字典
+    
+    Returns:
+        original_array: 包含原始ID的数组
+    """
+    # 创建反向映射字典
+    user_new2old = {v: k for k, v in user_index_old2new.items()}
+    
+    # 为item创建反向映射
+    item_new2old = {}
+    for old_id, new_id in item_index_old2new.items():
+        item_new2old[new_id] = old_id
+    
+    # 转换数组
+    original_array = processed_array.copy()
+    for i in range(len(processed_array)):
+        # 转换用户ID
+        original_array[i, 0] = user_new2old[processed_array[i, 0]]
+        # 转换物品ID
+        original_array[i, 1] = item_new2old[processed_array[i, 1]]
+    
+    return original_array
+
+
 if __name__ == '__main__':
     np.random.seed(555)
 
@@ -128,7 +162,25 @@ if __name__ == '__main__':
     item_index_old2new = dict()
 
     read_item_index_to_entity_id_file()
-    convert_rating()
-    convert_kg()
+
+    user_map, item_map = convert_rating()
+    # save user_map and item_map
+    with open('../data/user_map.pkl', 'wb') as f:
+        pickle.dump(user_map, f)
+    with open('../data/item_map.pkl', 'wb') as f:
+        pickle.dump(item_map, f)
+    print('begin')
+    train_data = np.load('../data/train_data.npy', allow_pickle=True)
+    test_data = np.load('../data/test_data.npy', allow_pickle=True)
+    eval_data = np.load('../data/eval_data.npy', allow_pickle=True)
+
+    train_new = convert_processed_to_original(train_data, user_map, item_map)
+    test_new = convert_processed_to_original(test_data, user_map, item_map)
+    eval_new = convert_processed_to_original(eval_data, user_map, item_map)
+    # 保存转换后的数据
+    np.save('../data/train_data_original.npy', train_new)
+    np.save('../data/test_data_original.npy', test_new) 
+    np.save('../data/eval_data_original.npy', eval_new)
+    # convert_kg()
 
     print('done')
