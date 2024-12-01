@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import pickle
-# TODO, replace by any other recommendation model to generate candidates
+
 def random_candidates(movie_ids, interacted_items, gt_items,
                       cand_samples=100,
                       cand_length=10):
@@ -10,7 +10,7 @@ def random_candidates(movie_ids, interacted_items, gt_items,
     candidates_list = []
     target_items = list(set(movie_ids) - set(gt_items) - set(interacted_items))
     for _ in range(cand_samples):
-        gt_ratio = np.random.normal(0.35, 0.15)
+        gt_ratio = np.random.normal(0.4, 0.15)
         if gt_ratio < 0.1:
             gt_ratio = 0.1
         elif gt_ratio > 0.8:
@@ -32,6 +32,7 @@ def random_candidates(movie_ids, interacted_items, gt_items,
         np.random.shuffle(candidates)
         candidates_list.append(candidates)
     return candidates_list
+
 
 def create_sequential_dataset(train_set, test_set, movie_ids,
                               candidates_generator:str = 'random',
@@ -94,12 +95,15 @@ def create_sequential_dataset(train_set, test_set, movie_ids,
 
 
 if __name__ == '__main__':
-    train_set = pd.read_csv('../dataset/movielens_50k/train_set.csv')
-    test_set = pd.read_csv('../dataset/movielens_50k/test_set.csv')
+    train_set = pd.read_csv('../dataset/movielens_1M/train_set.csv')
+    test_set = pd.read_csv('../dataset/movielens_1M/test_set.csv')
     # load movie_ids
-    with open('../dataset/movielens_50k/movie_ids.pkl', 'rb') as f:
+    with open('../dataset/movielens_1M/movie_ids.pkl', 'rb') as f:
         movie_ids = pickle.load(f)
 
     for cand_length_list in [3, 5, 10]:
-        dataset = create_sequential_dataset(train_set, test_set, movie_ids, candidates_generator='random', cand_length=cand_length_list)
-        dataset.to_csv(f'../dataset/movielens_50k/sequential_top{cand_length_list}.csv', index=False)
+        dataset = create_sequential_dataset(train_set, test_set, movie_ids, 
+                                            candidates_generator='random', 
+                                            cand_length=cand_length_list,
+                                            cand_samples=30)
+        dataset.to_csv(f'../dataset/movielens_1M/sequential_top{cand_length_list}.csv', index=False)
