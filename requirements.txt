@@ -1,7 +1,6 @@
-openai>=1.0.0
-tqdm
-networkx
-numpy
-tenacity
-asyncio
-python-dotenv 
+datasets
+trl
+peft
+bitsandbytes
+sentencepiece
+wandb
