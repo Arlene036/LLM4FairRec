@@ -60,6 +60,11 @@ def dataset_split(rating_np):
     eval_data = rating_np[eval_indices]
     test_data = rating_np[test_indices]
 
+    np.save('../data/train_data.npy', train_data)
+    np.save('../data/eval_data.npy', eval_data)
+    np.save('../data/test_data.npy', test_data)
+    np.save('../data/user_history_dict.npy', user_history_dict)
+
     return train_data, eval_data, test_data, user_history_dict
 
 

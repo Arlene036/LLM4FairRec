@@ -1,20 +1,19 @@
-Epoch 0: Train AUC: 0.8927, Train ACC: 0.8098, Eval AUC: 0.8833, Eval ACC: 0.8029, Test AUC: 0.8812, Test ACC: 0.7999
-Best model saved at epoch 0 with Eval AUC: 0.8833
-Epoch 1: Train AUC: 0.9034, Train ACC: 0.8209, Eval AUC: 0.8882, Eval ACC: 0.8077, Test AUC: 0.8862, Test ACC: 0.8064
-Best model saved at epoch 1 with Eval AUC: 0.8882
-Epoch 2: Train AUC: 0.9235, Train ACC: 0.8462, Eval AUC: 0.9011, Eval ACC: 0.8241, Test AUC: 0.8996, Test ACC: 0.8222
-Best model saved at epoch 2 with Eval AUC: 0.9011
-Epoch 3: Train AUC: 0.9350, Train ACC: 0.8583, Eval AUC: 0.9094, Eval ACC: 0.8309, Test AUC: 0.9079, Test ACC: 0.8297
-Best model saved at epoch 3 with Eval AUC: 0.9094
-Epoch 4: Train AUC: 0.9435, Train ACC: 0.8711, Eval AUC: 0.9142, Eval ACC: 0.8372, Test AUC: 0.9122, Test ACC: 0.8356
-Best model saved at epoch 4 with Eval AUC: 0.9142
-Epoch 5: Train AUC: 0.9510, Train ACC: 0.8816, Eval AUC: 0.9168, Eval ACC: 0.8406, Test AUC: 0.9157, Test ACC: 0.8388
-Best model saved at epoch 5 with Eval AUC: 0.9168
-Epoch 6: Train AUC: 0.9555, Train ACC: 0.8875, Eval AUC: 0.9188, Eval ACC: 0.8423, Test AUC: 0.9177, Test ACC: 0.8399
-Best model saved at epoch 6 with Eval AUC: 0.9188
-Epoch 7: Train AUC: 0.9592, Train ACC: 0.8924, Eval AUC: 0.9204, Eval ACC: 0.8443, Test AUC: 0.9200, Test ACC: 0.8438
-Best model saved at epoch 7 with Eval AUC: 0.9204
-Epoch 8: Train AUC: 0.9615, Train ACC: 0.8962, Eval AUC: 0.9187, Eval ACC: 0.8425, Test AUC: 0.9183, Test ACC: 0.8425
-Epoch 9: Train AUC: 0.9632, Train ACC: 0.8986, Eval AUC: 0.9173, Eval ACC: 0.8435, Test AUC: 0.9164, Test ACC: 0.8413
-Loaded best model from ./checkpoints/best_model_epoch_7.pt for testing...
-Final Test AUC: 0.9200, Final Test ACC: 0.8438
+Epoch 0: Train AUC: 0.8930, Train ACC: 0.8102, Eval AUC: 0.8826, Eval ACC: 0.8035, Test AUC: 0.8801, Test ACC: 0.8017
+Best model saved at epoch 0 with Eval AUC: 0.8826
+Epoch 1: Train AUC: 0.9023, Train ACC: 0.8188, Eval AUC: 0.8869, Eval ACC: 0.8052, Test AUC: 0.8843, Test ACC: 0.8043
+Best model saved at epoch 1 with Eval AUC: 0.8869
+Epoch 2: Train AUC: 0.9228, Train ACC: 0.8443, Eval AUC: 0.9013, Eval ACC: 0.8227, Test AUC: 0.9002, Test ACC: 0.8217
+Best model saved at epoch 2 with Eval AUC: 0.9013
+Epoch 3: Train AUC: 0.9344, Train ACC: 0.8585, Eval AUC: 0.9097, Eval ACC: 0.8323, Test AUC: 0.9087, Test ACC: 0.8315
+Best model saved at epoch 3 with Eval AUC: 0.9097
+Epoch 4: Train AUC: 0.9428, Train ACC: 0.8690, Eval AUC: 0.9144, Eval ACC: 0.8384, Test AUC: 0.9129, Test ACC: 0.8352
+Best model saved at epoch 4 with Eval AUC: 0.9144
+Epoch 5: Train AUC: 0.9508, Train ACC: 0.8804, Eval AUC: 0.9179, Eval ACC: 0.8411, Test AUC: 0.9162, Test ACC: 0.8395
+Best model saved at epoch 5 with Eval AUC: 0.9179
+Epoch 6: Train AUC: 0.9545, Train ACC: 0.8858, Eval AUC: 0.9194, Eval ACC: 0.8437, Test AUC: 0.9179, Test ACC: 0.8418
+Best model saved at epoch 6 with Eval AUC: 0.9194
+Epoch 7: Train AUC: 0.9573, Train ACC: 0.8899, Eval AUC: 0.9183, Eval ACC: 0.8423, Test AUC: 0.9168, Test ACC: 0.8412
+Epoch 8: Train AUC: 0.9597, Train ACC: 0.8938, Eval AUC: 0.9175, Eval ACC: 0.8421, Test AUC: 0.9160, Test ACC: 0.8401
+Epoch 9: Train AUC: 0.9632, Train ACC: 0.8984, Eval AUC: 0.9171, Eval ACC: 0.8420, Test AUC: 0.9157, Test ACC: 0.8404
+Loaded best model from ./checkpoints/best_model_epoch_6.pt for testing...
+Final Test AUC: 0.9179, Final Test ACC: 0.8418
