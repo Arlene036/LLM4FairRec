@@ -150,9 +150,11 @@ def test(args, data_info, best_model_path, k=10, batch_size=1024):
     # Prepare ground truth for this user
     ground_truth = {}
     for user in np.unique(test_data[:, 0]):
-        ground_truth[user] = set(
+        user_movies = set(
             test_data[test_data[:, 0] == user][:, 1][test_data[test_data[:, 0] == user][:, 2] == 1]
         )
+        if len(user_movies) >= 10:  # Keep users with at least 10 movies
+            ground_truth[user] = user_movies
 
     # Prepare CSV file
     with open(top_k_file, mode="w", newline="") as csv_file:
@@ -160,8 +162,8 @@ def test(args, data_info, best_model_path, k=10, batch_size=1024):
         csv_writer.writerow(["user id", "ground truth movies", "top 10 recommendations"])
 
         # Iterate over all users in the test data
-        unique_users = np.unique(test_data[:, 0])
-        for user in unique_users:
+        filtered_users = list(ground_truth.keys())
+        for user in filtered_users:
             # Step 1: Get user's interaction history and candidate items
             interacted_items = user_interactions.get(user, set())
             candidate_items = list((all_items - interacted_items) | ground_truth.get(user, set()))  # Exclude interacted items
