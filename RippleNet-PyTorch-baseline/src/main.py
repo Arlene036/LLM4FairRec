@@ -1,7 +1,8 @@
 import argparse
 import numpy as np
+import csv
 from data_loader import load_data
-from train import train
+from train import train, test
 
 np.random.seed(555)
 
@@ -43,4 +44,8 @@ args = parser.parse_args()
 
 show_loss = False
 data_info = load_data(args)
-train(args, data_info, show_loss)
+# best_model_path = train(args, data_info, show_loss)
+# test(args, data_info, best_model_path)
+
+best_model_path = "checkpoints/best_model_epoch_6.pt"
+test(args, data_info, best_model_path)
