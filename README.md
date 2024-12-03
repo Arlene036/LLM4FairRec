@@ -25,11 +25,16 @@ bash eval.sh
 
 1. Prepare your "3 columns dataset", which should be a csv file, STRICTLY COLUMN NAMES: user_id, groundtruth, top10_recommendations.
 
-2. run
+2. run, change the config in it
    ```
    bash construct.sh
    ```
 
-3. Go to Colab, connect to T4 GPU
+3. Go to Colab, connect to T4 GPU; 
+   
    https://colab.research.google.com/drive/1iXGHxfmJSNDD3Z39f08oRTJyhEvy2s3u?usp=sharing
+4. upload the generated csv file to the colab, and replace the following code
+   ```
+   test_data = pd.read_csv('/content/natural_language_top10_sample.csv')
+   ```
    
