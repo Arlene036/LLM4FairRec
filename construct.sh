@@ -3,6 +3,6 @@
 # output: natural language dataset for further inference
 
 python construct_nl_data.py \
-    --input_path YOUR_INPUT_PATH.csv \
+    --input_path /Users/lavander/cpan/h411711/cf/item_cf_recommendations.csv \
     --output_path natural_language_dataset.csv \
     --n 1000
