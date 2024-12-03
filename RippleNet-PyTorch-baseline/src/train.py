@@ -121,9 +121,15 @@ def test(args, data_info, best_model_path, k=10, batch_size=1024):
     user_recommendations = {}
     ground_truth = {}
     hit_count = 0
+    hit_count_3 = 0
+    hit_count_5 = 0
     total_relevant = 0
     total_recommended = 0
+    total_recommended_3 = 0
+    total_recommended_5 = 0
     ndcg_sum = 0
+    ndcg_sum_3 = 0
+    ndcg_sum_5 = 0
     user_count = 0
 
     # Create a dictionary to track user interactions from train_data and test_data
@@ -209,9 +215,21 @@ def test(args, data_info, best_model_path, k=10, batch_size=1024):
             ndcg_sum += calculate_ndcg(relevance_scores)
             user_count += 1
 
-            # print(f"Ground truth for user {user}: {ground_truth[user]}")
-            # print(f"Candidate items: {candidate_items}")
-            # print(f"Intersection: {ground_truth[user] & set(candidate_items)}")
+            # Metrics for Top-3
+            top_3_list = top_k_list[:3]
+            hits_3 = ground_truth[user] & set(top_3_list)
+            hit_count_3 += 1 if hits_3 else 0
+            total_recommended_3 += len(top_3_list)
+            relevance_scores_3 = [1 if item in ground_truth[user] else 0 for item in top_3_list]
+            ndcg_sum_3 += calculate_ndcg(relevance_scores_3)
+
+            # Metrics for Top-5
+            top_5_list = top_k_list[:5]
+            hits_5 = ground_truth[user] & set(top_5_list)
+            hit_count_5 += 1 if hits_5 else 0
+            total_recommended_5 += len(top_5_list)
+            relevance_scores_5 = [1 if item in ground_truth[user] else 0 for item in top_5_list]
+            ndcg_sum_5 += calculate_ndcg(relevance_scores_5)
 
     print(f"Top-K recommendations saved to {top_k_file}")
 
@@ -220,10 +238,32 @@ def test(args, data_info, best_model_path, k=10, batch_size=1024):
     recall = hit_count / total_relevant if total_relevant > 0 else 0
     ndcg = ndcg_sum / user_count if user_count > 0 else 0
 
+    precision_3 = hit_count_3 / total_recommended_3 if total_recommended_3 > 0 else 0
+    recall_3 = hit_count_3 / total_relevant if total_relevant > 0 else 0
+    ndcg_3 = ndcg_sum_3 / user_count if user_count > 0 else 0
+
+    precision_5 = hit_count_5 / total_recommended_5 if total_recommended_5 > 0 else 0
+    recall_5 = hit_count_5 / total_relevant if total_relevant > 0 else 0
+    ndcg_5 = ndcg_sum_5 / user_count if user_count > 0 else 0
+
+    hit_ratio_10 = hit_count / user_count if user_count > 0 else 0
+    hit_ratio_5 = hit_count_5 / user_count if user_count > 0 else 0
+    hit_ratio_3 = hit_count_3 / user_count if user_count > 0 else 0
+
+    # Save results to file
     with open(metrics_file, "w") as f:
-        f.write(f"Precision@{k}: {precision:.6f}\n")
-        f.write(f"Recall@{k}: {recall:.6f}\n")
-        f.write(f"NDCG@{k}: {ndcg:.6f}\n")
+        f.write(f"Hit Ratio@3: {hit_ratio_3:.6f}\n")
+        f.write(f"Precision@3: {precision_3:.6f}\n")
+        f.write(f"Recall@3: {recall_3:.6f}\n")
+        f.write(f"NDCG@3: {ndcg_3:.6f}\n")
+        f.write(f"Hit Ratio@5: {hit_ratio_5:.6f}\n")
+        f.write(f"Precision@5: {precision_5:.6f}\n")
+        f.write(f"Recall@5: {recall_5:.6f}\n")
+        f.write(f"NDCG@5: {ndcg_5:.6f}\n")
+        f.write(f"Hit Ratio@10: {hit_ratio_10:.6f}\n")
+        f.write(f"Precision@10: {precision:.6f}\n")
+        f.write(f"Recall@10: {recall:.6f}\n")
+        f.write(f"NDCG@10: {ndcg:.6f}\n")
     print(f"Metrics saved to {metrics_file}")
 
 def calculate_ndcg(relevance_scores):

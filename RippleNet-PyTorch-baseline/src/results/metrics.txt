@@ -1,3 +1,14 @@
+Hit Ratio@3: 0.328226
+Precision@3: 0.109409
+Recall@3: 0.026276
+NDCG@3: 0.246782
+
+Hit Ratio@5: 0.439634
+Precision@5: 0.087927
+Recall@5: 0.035195
+NDCG@5: 0.291572
+
+Hit Ratio@10: 1.142714
 Precision@10: 0.114271
 Recall@10: 0.091481
 NDCG@10: 0.339296
