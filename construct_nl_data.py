@@ -20,21 +20,21 @@ def convert_items_to_original_ids(processed_user_id, groundtruth_item_ids, top10
         user_map = pickle.load(f)
     item_new2old = {v: k for k, v in item_map.items()}
     user_new2old = {v: k for k, v in user_map.items()}
-    original_gt_item_ids = [item_new2old[pid] for pid in groundtruth_item_ids]
-    original_top10_item_ids = [item_new2old[pid] for pid in top10_item_ids]
+    original_gt_item_ids = [int(item_new2old[pid]) for pid in groundtruth_item_ids]
+    original_top10_item_ids = [int(item_new2old[pid]) for pid in top10_item_ids]
     original_user_id = user_new2old[processed_user_id]
     return original_user_id, original_gt_item_ids, original_top10_item_ids
 
 
-def generate_sequential_dataset(input_data,
+def generate_sequential_dataset(input_data, input_path,
                                 train_set_path='dataset/movielens_1M/train_set.csv',
                                 seq_length=10):
 
     user_id = input_data['user_id'].tolist()
     groundtruth = input_data['groundtruth'].tolist()
     top10_recommendations = input_data['top10_recommendations'].tolist()
-    print(type(groundtruth[0]))
-    print(type(top10_recommendations[0]))
+    #print(type(groundtruth[0]))
+    #print(type(top10_recommendations[0]))
     #print(type)
     # print(groundtruth[0])
     train_set = pd.read_csv(train_set_path)
@@ -43,7 +43,10 @@ def generate_sequential_dataset(input_data,
     original_gt_item_ids = []
     original_top10_item_ids = [] # List[List[int]]
     for uid, gt_list, top10_list in zip(user_id, groundtruth, top10_recommendations):
-        user_id_original, gt_items_original, top10_items_original = convert_items_to_original_ids(uid, eval(gt_list), eval(top10_list))
+        if "RippleNet-PyTorch-baseline" in input_path:
+            user_id_original, gt_items_original, top10_items_original = convert_items_to_original_ids(uid, eval(gt_list), eval(top10_list))
+        else:
+            user_id_original, gt_items_original, top10_items_original = uid, eval(gt_list), eval(top10_list)
         original_user_ids.append(user_id_original)
         original_gt_item_ids.append(gt_items_original)
         original_top10_item_ids.append(top10_items_original)
@@ -83,10 +86,11 @@ def process_sequence(row):
     history_movies = filtered_movies[filtered_movies['movieId'].isin(history)].apply(get_movie_description, axis=1).tolist()
     
     candidates = row['candidates']
+    # print(type(candidates),type(candidates[0]),candidates)
     candidate_movies = filtered_movies[filtered_movies['movieId'].isin(candidates)].apply(get_movie_description, axis=1).tolist()
     
     next_items = row['groundtruth']
-    #print()
+    #print(type(next_items),type(next_items[0]),next_items)
     ground_truth = filtered_movies[filtered_movies['movieId'].isin(next_items)].apply(get_movie_description, axis=1).tolist()
     
     return pd.Series({
@@ -119,12 +123,20 @@ if __name__ == "__main__":
                         help='3 column dataset for inference: user_id, groundtruth, top10_recommendations')
     parser.add_argument("--output_path", type=str, default="natural_language_dataset.csv", 
                         help='natural language dataset for further inference')
-    parser.add_argument("--n", type=int, default=None, 
+    parser.add_argument("--n", type=int, default=1000, 
                         help='number of samples to process (how large the dataset is for inference!!!)')
     args = parser.parse_args()
 
     # read the input file
     input_data = pd.read_csv(args.input_path)
-    seq_dataset = generate_sequential_dataset(input_data)
+    seq_dataset = generate_sequential_dataset(input_data,args.input_path)
+    # Sort by the length of groundtruth and select top n
+    seq_dataset['groundtruth_length'] = seq_dataset['groundtruth'].apply(len)  # Calculate groundtruth length
+    seq_dataset = seq_dataset.sort_values(by='groundtruth_length').head(args.n)  # Sort and pick top n    
+    max_groundtruth_length = seq_dataset['groundtruth_length'].max()
+    print(f"The maximum groundtruth length in the selected {args.n} samples is: {max_groundtruth_length}")
+    
     natural_language_dataset = build_natural_language_dataset(seq_dataset, n=args.n)
+    natural_language_dataset = natural_language_dataset.sort_values(by='user_id')
+
     natural_language_dataset.to_csv(args.output_path, index=False)
