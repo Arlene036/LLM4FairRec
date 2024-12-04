@@ -34,10 +34,18 @@ def generate_sequential_dataset(input_data,
     groundtruth = input_data['groundtruth'].tolist()
     top10_recommendations = input_data['top10_recommendations'].tolist()
     train_set = pd.read_csv(train_set_path)
-    original_user_id, original_gt_item_ids, original_top10_item_ids = convert_items_to_original_ids(user_id, groundtruth, top10_recommendations)
+
+    original_user_ids = [] # List[int]
+    original_gt_item_ids = []
+    original_top10_item_ids = [] # List[List[int]]
+    for uid, gt_list, top10_list in zip(user_id, groundtruth, top10_recommendations):
+        original_user_id, original_gt_item_ids, original_top10_item_ids = convert_items_to_original_ids(uid, gt_list, top10_list)
+        original_user_ids.append(original_user_id)
+        original_gt_item_ids.append(original_gt_item_ids)
+        original_top10_item_ids.append(original_top10_item_ids)
 
     dataset = []
-    for uid, gt_list, top10_list in zip(original_user_id, original_gt_item_ids, original_top10_item_ids):
+    for uid, gt_list, top10_list in zip(original_user_ids, original_gt_item_ids, original_top10_item_ids):
         user_history = train_set[train_set['userId'] == uid]['movieId'].tolist()
         # sort by timestamp
         user_history.sort(key=lambda x: train_set[train_set['movieId'] == x]['timestamp'].values[0])
