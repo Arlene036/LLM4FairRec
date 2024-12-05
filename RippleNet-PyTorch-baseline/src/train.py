@@ -123,6 +123,7 @@ def test(args, data_info, best_model_path, k=10, batch_size=1024):
     hit_count = 0
     hit_count_3 = 0
     hit_count_5 = 0
+    hit_count_10 = 0
     total_relevant = 0
     total_recommended = 0
     total_recommended_3 = 0
@@ -153,8 +154,9 @@ def test(args, data_info, best_model_path, k=10, batch_size=1024):
         user_movies = set(
             test_data[test_data[:, 0] == user][:, 1][test_data[test_data[:, 0] == user][:, 2] == 1]
         )
-        if len(user_movies) >= 10:  # Keep users with at least 10 movies
-            ground_truth[user] = user_movies
+        ground_truth[user] = user_movies
+        # if len(user_movies) >= 10:  # Keep users with at least 10 movies
+        #     ground_truth[user] = user_movies
 
     # Prepare CSV file
     with open(top_k_file, mode="w", newline="") as csv_file:
@@ -210,6 +212,7 @@ def test(args, data_info, best_model_path, k=10, batch_size=1024):
             recommended_items = set(top_k_list)
             hits = ground_truth[user] & recommended_items
             hit_count += len(hits)
+            hit_count_10 += 1 if hits else 0
             total_relevant += len(ground_truth[user])
             total_recommended += len(recommended_items)
 
@@ -248,7 +251,7 @@ def test(args, data_info, best_model_path, k=10, batch_size=1024):
     recall_5 = hit_count_5 / total_relevant if total_relevant > 0 else 0
     ndcg_5 = ndcg_sum_5 / user_count if user_count > 0 else 0
 
-    hit_ratio_10 = hit_count / user_count if user_count > 0 else 0
+    hit_ratio_10 = hit_count_10 / user_count if user_count > 0 else 0
     hit_ratio_5 = hit_count_5 / user_count if user_count > 0 else 0
     hit_ratio_3 = hit_count_3 / user_count if user_count > 0 else 0
 
